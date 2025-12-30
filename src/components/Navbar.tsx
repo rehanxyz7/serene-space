@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Wind, Music, Headphones, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import ThemeToggle from './ThemeToggle';
 
 const navItems = [
   { path: '/', label: 'Home', icon: Wind },
@@ -55,8 +56,9 @@ const Navbar = () => {
             })}
           </div>
 
-          {/* Auth Button */}
-          <div className="hidden md:block">
+          {/* Theme Toggle & Auth */}
+          <div className="hidden md:flex items-center gap-2">
+            <ThemeToggle />
             <Link to="/auth">
               <Button variant="hero" size="sm">
                 <User className="w-4 h-4" />
