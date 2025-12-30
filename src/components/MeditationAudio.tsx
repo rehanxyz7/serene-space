@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Volume2, VolumeX, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,169 +12,147 @@ interface MeditationAudioProps {
 const MeditationAudio = ({ isPlaying, defaultVolume = 0.4 }: MeditationAudioProps) => {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [volume, setVolume] = useState(defaultVolume);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
-  const nodesRef = useRef<AudioNode[]>([]);
+  const nodesRef = useRef<(OscillatorNode)[]>([]);
 
-  const startChantingSound = useCallback(() => {
-    if (audioContextRef.current || !audioEnabled) return;
+  const startChantingSound = () => {
+    if (audioContextRef.current) return;
 
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    audioContextRef.current = audioContext;
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = audioContext;
 
-    const masterGain = audioContext.createGain();
-    masterGain.gain.value = volume;
-    masterGain.connect(audioContext.destination);
-    gainNodeRef.current = masterGain;
+      const masterGain = audioContext.createGain();
+      masterGain.gain.value = volume;
+      masterGain.connect(audioContext.destination);
+      gainNodeRef.current = masterGain;
 
-    // OM frequency (cosmic frequency 136.1 Hz)
-    const omFreq = 136.1;
-    
-    // Create rich OM drone with multiple layers
-    // Layer 1: Base OM tone
-    const baseOsc = audioContext.createOscillator();
-    baseOsc.type = 'sine';
-    baseOsc.frequency.value = omFreq;
-    
-    const baseGain = audioContext.createGain();
-    baseGain.gain.value = 0.2;
-    
-    baseOsc.connect(baseGain);
-    baseGain.connect(masterGain);
-    baseOsc.start();
-    nodesRef.current.push(baseOsc);
-
-    // Layer 2: Octave harmonics for richness
-    [2, 3, 4].forEach((mult, i) => {
-      const osc = audioContext.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = omFreq * mult;
+      // OM frequency (cosmic frequency 136.1 Hz)
+      const omFreq = 136.1;
       
-      const gain = audioContext.createGain();
-      gain.gain.value = 0.1 / (mult);
+      // Layer 1: Base OM tone
+      const baseOsc = audioContext.createOscillator();
+      baseOsc.type = 'sine';
+      baseOsc.frequency.value = omFreq;
       
-      osc.connect(gain);
-      gain.connect(masterGain);
-      osc.start();
-      nodesRef.current.push(osc);
-    });
-
-    // Layer 3: Detuned voices for choir effect
-    [-8, -4, 4, 8].forEach((detune) => {
-      const osc = audioContext.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = omFreq;
-      osc.detune.value = detune;
+      const baseGain = audioContext.createGain();
+      baseGain.gain.value = 0.25;
       
-      const gain = audioContext.createGain();
-      gain.gain.value = 0.06;
+      baseOsc.connect(baseGain);
+      baseGain.connect(masterGain);
+      baseOsc.start();
+      nodesRef.current.push(baseOsc);
+
+      // Layer 2: Octave harmonics
+      [2, 3].forEach((mult) => {
+        const osc = audioContext.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = omFreq * mult;
+        
+        const gain = audioContext.createGain();
+        gain.gain.value = 0.12 / mult;
+        
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start();
+        nodesRef.current.push(osc);
+      });
+
+      // Layer 3: Detuned voices for choir effect
+      [-6, 6].forEach((detune) => {
+        const osc = audioContext.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = omFreq;
+        osc.detune.value = detune;
+        
+        const gain = audioContext.createGain();
+        gain.gain.value = 0.08;
+        
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start();
+        nodesRef.current.push(osc);
+      });
+
+      // Layer 4: Sub-bass for warmth
+      const subOsc = audioContext.createOscillator();
+      subOsc.type = 'sine';
+      subOsc.frequency.value = omFreq / 2;
       
-      osc.connect(gain);
-      gain.connect(masterGain);
-      osc.start();
-      nodesRef.current.push(osc);
-    });
+      const subGain = audioContext.createGain();
+      subGain.gain.value = 0.15;
+      
+      subOsc.connect(subGain);
+      subGain.connect(masterGain);
+      subOsc.start();
+      nodesRef.current.push(subOsc);
 
-    // Layer 4: Fifth harmony (203.4 Hz) for depth
-    const fifthOsc = audioContext.createOscillator();
-    fifthOsc.type = 'sine';
-    fifthOsc.frequency.value = omFreq * 1.5;
-    
-    const fifthGain = audioContext.createGain();
-    fifthGain.gain.value = 0.08;
-    
-    fifthOsc.connect(fifthGain);
-    fifthGain.connect(masterGain);
-    fifthOsc.start();
-    nodesRef.current.push(fifthOsc);
+      // Layer 5: Fifth harmony
+      const fifthOsc = audioContext.createOscillator();
+      fifthOsc.type = 'sine';
+      fifthOsc.frequency.value = omFreq * 1.5;
+      
+      const fifthGain = audioContext.createGain();
+      fifthGain.gain.value = 0.1;
+      
+      fifthOsc.connect(fifthGain);
+      fifthGain.connect(masterGain);
+      fifthOsc.start();
+      nodesRef.current.push(fifthOsc);
 
-    // Layer 5: Sub-bass for warmth
-    const subOsc = audioContext.createOscillator();
-    subOsc.type = 'sine';
-    subOsc.frequency.value = omFreq / 2;
-    
-    const subGain = audioContext.createGain();
-    subGain.gain.value = 0.12;
-    
-    subOsc.connect(subGain);
-    subGain.connect(masterGain);
-    subOsc.start();
-    nodesRef.current.push(subOsc);
+      setIsAudioPlaying(true);
+      console.log('OM chanting started');
+    } catch (error) {
+      console.error('Error starting chanting sound:', error);
+    }
+  };
 
-    // Layer 6: Slow amplitude modulation for breathing effect
-    const lfo = audioContext.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = 0.08; // Very slow ~8 second cycle
-    
-    const lfoGain = audioContext.createGain();
-    lfoGain.gain.value = 0.15;
-    
-    lfo.connect(lfoGain);
-    lfoGain.connect(masterGain.gain);
-    lfo.start();
-    nodesRef.current.push(lfo);
-
-    // Layer 7: Subtle shimmer with high frequencies
-    const shimmer = audioContext.createOscillator();
-    shimmer.type = 'sine';
-    shimmer.frequency.value = omFreq * 8;
-    
-    const shimmerGain = audioContext.createGain();
-    shimmerGain.gain.value = 0.02;
-    
-    const shimmerLfo = audioContext.createOscillator();
-    shimmerLfo.type = 'sine';
-    shimmerLfo.frequency.value = 0.3;
-    
-    const shimmerLfoGain = audioContext.createGain();
-    shimmerLfoGain.gain.value = 0.01;
-    
-    shimmerLfo.connect(shimmerLfoGain);
-    shimmerLfoGain.connect(shimmerGain.gain);
-    
-    shimmer.connect(shimmerGain);
-    shimmerGain.connect(masterGain);
-    shimmer.start();
-    shimmerLfo.start();
-    nodesRef.current.push(shimmer, shimmerLfo);
-
-  }, [audioEnabled, volume]);
-
-  const stopChantingSound = useCallback(() => {
+  const stopChantingSound = () => {
     nodesRef.current.forEach(node => {
       try {
-        if ('stop' in node && typeof node.stop === 'function') {
-          (node as OscillatorNode).stop();
-        }
+        node.stop();
       } catch (e) {}
     });
     nodesRef.current = [];
 
     if (audioContextRef.current) {
-      audioContextRef.current.close();
+      try {
+        audioContextRef.current.close();
+      } catch (e) {}
       audioContextRef.current = null;
     }
 
     gainNodeRef.current = null;
-  }, []);
+    setIsAudioPlaying(false);
+    console.log('OM chanting stopped');
+  };
 
+  // Handle play/stop based on meditation state and audio enabled
   useEffect(() => {
-    if (isPlaying && audioEnabled) {
+    const shouldPlay = isPlaying && audioEnabled;
+    
+    if (shouldPlay && !audioContextRef.current) {
       startChantingSound();
-    } else {
+    } else if (!shouldPlay && audioContextRef.current) {
       stopChantingSound();
     }
+  }, [isPlaying, audioEnabled]);
 
+  // Handle volume changes
+  useEffect(() => {
+    if (gainNodeRef.current) {
+      gainNodeRef.current.gain.value = volume;
+    }
+  }, [volume]);
+
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
       stopChantingSound();
     };
-  }, [isPlaying, audioEnabled, startChantingSound, stopChantingSound]);
-
-  useEffect(() => {
-    if (gainNodeRef.current && audioContextRef.current) {
-      gainNodeRef.current.gain.setValueAtTime(volume, audioContextRef.current.currentTime);
-    }
-  }, [volume]);
+  }, []);
 
   const isActive = audioEnabled && isPlaying;
 
@@ -187,7 +165,7 @@ const MeditationAudio = ({ isPlaying, defaultVolume = 0.4 }: MeditationAudioProp
     >
       <div className="flex items-center gap-3">
         <motion.div
-          animate={isActive ? { rotate: [0, 360] } : {}}
+          animate={isActive && isAudioPlaying ? { rotate: [0, 360] } : {}}
           transition={{ repeat: Infinity, duration: 8, ease: 'linear' }}
         >
           <Sparkles className={`w-5 h-5 ${isActive ? 'text-accent' : 'text-muted-foreground'}`} />
@@ -226,6 +204,16 @@ const MeditationAudio = ({ isPlaying, defaultVolume = 0.4 }: MeditationAudioProp
           {Math.round(volume * 100)}%
         </span>
       </div>
+      
+      {isActive && isAudioPlaying && (
+        <motion.span 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-xs text-accent"
+        >
+          ♪ Playing
+        </motion.span>
+      )}
     </motion.div>
   );
 };
