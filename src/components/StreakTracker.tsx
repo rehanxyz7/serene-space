@@ -32,7 +32,7 @@ const causes = [
 
 const StreakTracker = ({ onShare }: StreakTrackerProps) => {
   const [streakData, setStreakData] = useState<StreakData>(() => {
-    const saved = localStorage.getItem('serenity-streak');
+    const saved = localStorage.getItem('myspace-streak');
     return saved
       ? JSON.parse(saved)
       : {
@@ -47,7 +47,7 @@ const StreakTracker = ({ onShare }: StreakTrackerProps) => {
   const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('serenity-streak', JSON.stringify(streakData));
+    localStorage.setItem('myspace-streak', JSON.stringify(streakData));
   }, [streakData]);
 
   const currentPlant = plantStages.find(
@@ -72,11 +72,11 @@ const StreakTracker = ({ onShare }: StreakTrackerProps) => {
   );
 
   const handleShare = () => {
-    const shareText = `🧘 I've completed ${streakData.totalSessions} focus sessions on Serenity!\n🔥 Current streak: ${streakData.currentStreak} days\n${currentPlant.emoji} My plant: ${currentPlant.name}\n\nJoin me in beating procrastination!`;
+    const shareText = `🧘 I've completed ${streakData.totalSessions} focus sessions on My Space!\n🔥 Current streak: ${streakData.currentStreak} days\n${currentPlant.emoji} My plant: ${currentPlant.name}\n\nJoin me in beating procrastination!`;
     
     if (navigator.share) {
       navigator.share({
-        title: 'My Serenity Progress',
+        title: 'My Space Progress',
         text: shareText,
       });
     } else {

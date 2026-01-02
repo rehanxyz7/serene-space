@@ -26,7 +26,7 @@ const Navbar = () => {
               <Wind className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="font-display font-bold text-xl hidden sm:block group-hover:text-primary transition-colors">
-              Serenity
+              My Space
             </span>
           </Link>
 
