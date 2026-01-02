@@ -8,8 +8,6 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
-  signInWithApple: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -64,6 +62,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
+  // OAuth methods removed - providers not configured in backend
+  // To enable OAuth:
+  // 1. Go to Backend settings → Authentication → Providers
+  // 2. Enable Google/Apple OAuth
+  // 3. Add the OAuth methods back to this context
+  // Example implementation (commented out):
+  /*
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -73,16 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     return { error };
   };
-
-  const signInWithApple = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      }
-    });
-    return { error };
-  };
+  */
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -95,8 +91,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       loading,
       signUp,
       signIn,
-      signInWithGoogle,
-      signInWithApple,
       signOut,
     }}>
       {children}
