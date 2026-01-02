@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
+import GlobalBackgroundMusic from "@/components/GlobalBackgroundMusic";
 import Index from "./pages/Index";
 import Meditate from "./pages/Meditate";
 import Sounds from "./pages/Sounds";
@@ -17,6 +18,7 @@ function App() {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <GlobalBackgroundMusic />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/meditate" element={<Meditate />} />
