@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import MeditationTimer from '@/components/MeditationTimer';
 import MeditationAudio from '@/components/MeditationAudio';
-import AmbientPlayer from '@/components/AmbientPlayer';
 import { toast } from 'sonner';
 
 const Meditate = () => {
@@ -60,7 +59,6 @@ const Meditate = () => {
             transition={{ delay: 0.1 }}
             className="flex flex-wrap justify-center gap-4 mb-8"
           >
-            <AmbientPlayer autoPlay={true} defaultVolume={0.3} />
             <MeditationAudio isPlaying={isMeditating} defaultVolume={0.4} />
           </motion.div>
 
