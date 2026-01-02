@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, Eye, EyeOff, Sparkles, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -9,10 +9,11 @@ import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { user, signIn, signUp, signInWithGoogle, signInWithApple } = useAuth();
+  const { user, signIn, signUp } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -21,10 +22,10 @@ const Auth = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
+    if (user && !showSuccess) {
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, navigate, showSuccess]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,9 +40,13 @@ const Auth = () => {
           } else {
             toast.error(error.message);
           }
+          setLoading(false);
         } else {
-          toast.success('Welcome back!');
-          navigate('/');
+          // Show success animation
+          setShowSuccess(true);
+          setTimeout(() => {
+            navigate('/');
+          }, 2000);
         }
       } else {
         if (!formData.name.trim()) {
@@ -61,31 +66,97 @@ const Auth = () => {
           } else {
             toast.error(error.message);
           }
+          setLoading(false);
         } else {
-          toast.success('Account created successfully!');
-          navigate('/');
+          // Show success animation
+          setShowSuccess(true);
+          setTimeout(() => {
+            navigate('/');
+          }, 2000);
         }
       }
     } catch (error: any) {
       toast.error('An unexpected error occurred');
-    } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    const { error } = await signInWithGoogle();
-    if (error) {
-      toast.error('Failed to sign in with Google. Please configure Google OAuth in your backend settings.');
-    }
+  const handleSocialLogin = () => {
+    toast.info('Social login requires OAuth configuration. Please use email/password for now.');
   };
 
-  const handleAppleSignIn = async () => {
-    const { error } = await signInWithApple();
-    if (error) {
-      toast.error('Failed to sign in with Apple. Please configure Apple OAuth in your backend settings.');
-    }
-  };
+  // Success Animation Component
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+        <div className="fixed inset-0 -z-10">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.2),transparent_50%)]" />
+        </div>
+        
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          className="text-center"
+        >
+          {/* Success Circle */}
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="w-32 h-32 mx-auto mb-8 relative"
+          >
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-accent opacity-20 blur-xl animate-pulse" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary/50" />
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <Check className="w-16 h-16 text-primary" strokeWidth={3} />
+            </motion.div>
+          </motion.div>
+
+          {/* Success Text */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <h1 className="text-3xl font-display font-bold mb-3">
+              {isLogin ? 'Welcome Back!' : 'Account Created!'}
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              Redirecting to your dashboard...
+            </p>
+          </motion.div>
+
+          {/* Floating Particles */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ 
+                opacity: [0, 1, 0],
+                scale: [0, 1, 0],
+                y: [-20, -80],
+                x: [0, (i % 2 === 0 ? 1 : -1) * (20 + i * 10)]
+              }}
+              transition={{ 
+                delay: 0.3 + i * 0.1,
+                duration: 1.5,
+                ease: "easeOut"
+              }}
+              className="absolute left-1/2 top-1/3"
+            >
+              <Sparkles className="w-4 h-4 text-primary" />
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
@@ -123,8 +194,9 @@ const Auth = () => {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-12 gap-3"
-              onClick={handleGoogleSignIn}
+              className="w-full h-12 gap-3 opacity-60 cursor-not-allowed"
+              onClick={handleSocialLogin}
+              disabled
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -150,14 +222,16 @@ const Auth = () => {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-12 gap-3"
-              onClick={handleAppleSignIn}
+              className="w-full h-12 gap-3 opacity-60 cursor-not-allowed"
+              onClick={handleSocialLogin}
+              disabled
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
               </svg>
               Continue with Apple
             </Button>
+            <p className="text-xs text-center text-muted-foreground">Social login coming soon</p>
           </div>
 
           {/* Divider */}
