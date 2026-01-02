@@ -18,14 +18,14 @@ const MusicPage = () => {
   };
 
   const handleSessionComplete = useCallback(() => {
-    const saved = localStorage.getItem('serenity-streak');
+    const saved = localStorage.getItem('myspace-streak');
     const data = saved ? JSON.parse(saved) : { currentStreak: 0, longestStreak: 0, totalSessions: 0 };
     data.totalSessions += 1;
     data.currentStreak += 1;
     if (data.currentStreak > data.longestStreak) {
       data.longestStreak = data.currentStreak;
     }
-    localStorage.setItem('serenity-streak', JSON.stringify(data));
+    localStorage.setItem('myspace-streak', JSON.stringify(data));
     toast.success('Session complete! Your plant is growing 🌱');
   }, []);
 

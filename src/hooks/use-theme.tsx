@@ -14,7 +14,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('dark');
 
   useEffect(() => {
-    const saved = localStorage.getItem('serenity-theme') as Theme | null;
+    const saved = localStorage.getItem('myspace-theme') as Theme | null;
     if (saved) {
       setThemeState(saved);
     }
@@ -24,7 +24,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
-    localStorage.setItem('serenity-theme', theme);
+    localStorage.setItem('myspace-theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
